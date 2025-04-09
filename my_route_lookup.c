@@ -115,4 +115,40 @@ int lookup(TrieNode *t, uint32_t ip) {
 
     return best_match;
 }
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Uso: %s <routing_table.txt> <packets.txt>\n", argv[0]);
+        return 1;
+    }
+
+    TrieNode *root = create_trie(argv[1]); // Construir trie desde tabla de rutas
+
+    FILE *f = fopen(argv[2], "r");
+    if (!f) {
+        perror("Error abriendo archivo de paquetes");
+        return 1;
+    }
+
+    char line[MAX_LINE];
+    while (fgets(line, MAX_LINE, f)) {
+        uint32_t ip;
+        if (sscanf(line, "%u.%u.%u.%u", 
+                   (unsigned int*)&((char*)&ip)[3],
+                   (unsigned int*)&((char*)&ip)[2],
+                   (unsigned int*)&((char*)&ip)[1],
+                   (unsigned int*)&((char*)&ip)[0]) == 4) {
+
+            int iface = lookup(root, ip);
+            printf("%u.%u.%u.%u -> %d\n",
+                   ((unsigned char*)&ip)[3],
+                   ((unsigned char*)&ip)[2],
+                   ((unsigned char*)&ip)[1],
+                   ((unsigned char*)&ip)[0],
+                   iface);
+        }
+    }
+
+    fclose(f);
+    return 0;
+}
 
